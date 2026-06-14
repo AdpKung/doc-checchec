@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ตรวจสอบเอกสารโครงการ</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f4ff;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem}
+.card{background:#fff;border-radius:20px;padding:2rem;width:100%;max-width:600px;border:1px solid #e8e6ff}
+
+.page{display:none}.page.active{display:block}
+
+.hero{text-align:center;padding:1.5rem 0 2rem}
+.hero-icon{width:68px;height:68px;border-radius:18px;background:#EEEDFE;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.hero-icon i{font-size:32px;color:#534AB7}
+.hero-title{font-size:22px;font-weight:600;color:#1a1a2e;margin-bottom:8px}
+.hero-sub{font-size:14px;color:#6b6b8a;line-height:1.7}
+
+.drop-zone{border:2px dashed #c5c0f5;border-radius:16px;padding:2.5rem 1.5rem;text-align:center;cursor:pointer;position:relative;transition:all .15s;margin-bottom:1.25rem;background:#faf9ff}
+.drop-zone:hover,.drop-zone.over{background:#EEEDFE;border-color:#534AB7}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz-icon{width:52px;height:52px;border-radius:14px;background:#EEEDFE;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.dz-icon i{font-size:24px;color:#534AB7}
+.dz-title{font-size:15px;font-weight:500;color:#1a1a2e;margin-bottom:4px}
+.dz-sub{font-size:13px;color:#9b9bb5}
+.dz-pills{display:flex;gap:6px;justify-content:center;margin-top:12px}
+.dz-pill{font-size:11px;padding:4px 14px;border-radius:20px;background:#EEEDFE;color:#534AB7;font-weight:600;border:1px solid #c5c0f5}
+
+.file-card{display:none;align-items:center;gap:12px;background:#f0f0ff;border:1px solid #dddaff;border-radius:12px;padding:12px 14px;margin-bottom:1.25rem}
+.fc-icon{width:40px;height:40px;border-radius:10px;background:#E6F1FB;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fc-icon i{font-size:20px;color:#185FA5}
+.fc-name{font-size:13px;font-weight:500;color:#1a1a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc-size{font-size:11px;color:#9b9bb5;margin-top:2px}
+.fc-rm{background:none;border:none;cursor:pointer;color:#b0b0c8;font-size:18px;padding:4px;display:flex;margin-left:auto}
+.fc-rm:hover{color:#534AB7}
+
+.btn-primary{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:#534AB7;border:none;border-radius:12px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;color:#fff;transition:background .15s;letter-spacing:.01em}
+.btn-primary:hover:not(:disabled){background:#3C3489}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed}
+.btn-primary i{font-size:18px}
+
+.loading-page{text-align:center;padding:5rem 1rem}
+.spin-wrap{width:76px;height:76px;border-radius:50%;border:4px solid #EEEDFE;border-top-color:#534AB7;animation:spin .8s linear infinite;margin:0 auto 24px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-title{font-size:16px;font-weight:600;color:#1a1a2e;margin-bottom:6px}
+.loading-sub{font-size:13px;color:#9b9bb5}
+
+.result-header{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid #f0f0f7}
+.btn-back{display:flex;align-items:center;gap:6px;background:none;border:1px solid #e0deff;border-radius:10px;padding:8px 14px;font-size:13px;color:#534AB7;cursor:pointer;font-weight:500;transition:background .12s}
+.btn-back:hover{background:#EEEDFE}
+.btn-back i{font-size:15px}
+.rh-title{font-size:16px;font-weight:600;color:#1a1a2e}
+.rh-fn{font-size:12px;color:#9b9bb5;margin-top:1px}
+
+.score-band{background:#faf9ff;border:1px solid #e8e6ff;border-radius:16px;padding:1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1.25rem}
+.ring-wrap{position:relative;flex-shrink:0}
+.ring-svg{transform:rotate(-90deg)}
+.r-bg{fill:none;stroke:#f0f0ff;stroke-width:7}
+.r-fg{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .7s cubic-bezier(.4,0,.2,1)}
+.ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-size:20px;font-weight:700;color:#1a1a2e}
+.ring-lbl{font-size:10px;color:#9b9bb5;margin-top:1px}
+.score-right{flex:1}
+.score-verdict{font-size:15px;font-weight:600;color:#1a1a2e;margin-bottom:4px}
+.score-desc{font-size:12px;color:#6b6b8a;line-height:1.6;margin-bottom:12px}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.stat{background:#fff;border:1px solid #f0f0f7;border-radius:10px;padding:8px;text-align:center}
+.stat-n{font-size:20px;font-weight:700}
+.stat-l{font-size:10px;color:#9b9bb5;margin-top:2px}
+.sn-g{color:#0F6E56}.sn-r{color:#993C1D}.sn-a{color:#854F0B}
+
+.tabs{display:flex;gap:4px;margin-bottom:1rem;background:#f5f4ff;border-radius:12px;padding:4px}
+.tab{flex:1;padding:8px;font-size:12.5px;cursor:pointer;color:#6b6b8a;border-radius:9px;background:none;border:none;transition:all .12s;font-weight:500;text-align:center}
+.tab.active{background:#fff;color:#534AB7;font-weight:600;box-shadow:0 1px 3px rgba(83,74,183,.12)}
+
+.items{display:flex;flex-direction:column;gap:6px}
+.item{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid #f0f0f7;border-radius:12px;padding:12px 13px;position:relative;overflow:hidden}
+.item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.item.pass::before{background:#1D9E75}
+.item.fail::before{background:#D85A30}
+.item.warn::before{background:#EF9F27}
+.item-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.item-ico.pass{background:#E1F5EE}.item-ico.fail{background:#FAECE7}.item-ico.warn{background:#FAEEDA}
+.item-ico i{font-size:16px}
+.item-ico.pass i{color:#0F6E56}.item-ico.fail i{color:#993C1D}.item-ico.warn i{color:#854F0B}
+.item-body{flex:1;padding-left:2px}
+.item-label{font-size:13px;font-weight:600;color:#1a1a2e;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.item-detail{font-size:12px;color:#6b6b8a;margin-top:3px;line-height:1.5}
+.pill{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.pill.pass{background:#E1F5EE;color:#085041}
+.pill.fail{background:#FAECE7;color:#712B13}
+.pill.warn{background:#FAEEDA;color:#633806}
+.panel{display:none}.panel.active{display:block}
+
+footer{text-align:center;margin-top:1.5rem;font-size:11px;color:#c0bfd8}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="page active" id="pg-upload">
+    <div class="hero">
+      <div class="hero-icon"><i class="ti ti-clipboard-check"></i></div>
+      <div class="hero-title">ตรวจสอบเอกสารโครงการ</div>
+      <div class="hero-sub">ตรวจความครบถ้วนของหัวข้อ ฟอนต์ และขนาดตัวอักษร<br>รองรับไฟล์ .docx และ .pdf</div>
+    </div>
+
+    <div class="drop-zone" id="dz">
+      <input type="file" id="fi" accept=".pdf,.docx,.doc" onchange="handleFile(this.files[0])">
+      <div class="dz-icon"><i class="ti ti-cloud-upload"></i></div>
+      <div class="dz-title">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก</div>
+      <div class="dz-sub">ไฟล์ Word หรือ PDF ของเอกสารโครงการ</div>
+      <div class="dz-pills"><span class="dz-pill">.docx</span><span class="dz-pill">.pdf</span></div>
+    </div>
+
+    <div class="file-card" id="fc">
+      <div class="fc-icon"><i class="ti ti-file-text"></i></div>
+      <div style="flex:1;overflow:hidden">
+        <div class="fc-name" id="fn"></div>
+        <div class="fc-size" id="fs"></div>
+      </div>
+      <button class="fc-rm" onclick="removeFile()"><i class="ti ti-x"></i></button>
+    </div>
+
+    <button class="btn-primary" id="checkBtn" onclick="runCheck()" disabled>
+      <i class="ti ti-scan"></i> เริ่มตรวจสอบเอกสาร
+    </button>
+    <footer>ไม่มีการอัปโหลดไฟล์ไปยังเซิร์ฟเวอร์ — ทุกอย่างประมวลผลในเบราว์เซอร์ของคุณ</footer>
+  </div>
+
+  <div class="page" id="pg-loading">
+    <div class="loading-page">
+      <div class="spin-wrap"></div>
+      <div class="loading-title">กำลังวิเคราะห์เอกสาร</div>
+      <div class="loading-sub">โปรดรอสักครู่...</div>
+    </div>
+  </div>
+
+  <div class="page" id="pg-result">
+    <div class="result-header">
+      <button class="btn-back" onclick="goBack()"><i class="ti ti-arrow-left"></i> ย้อนกลับ</button>
+      <div>
+        <div class="rh-title">ผลการตรวจสอบ</div>
+        <div class="rh-fn" id="rfn"></div>
+      </div>
+    </div>
+
+    <div class="score-band">
+      <div class="ring-wrap">
+        <svg class="ring-svg" width="90" height="90" viewBox="0 0 90 90">
+          <circle class="r-bg" cx="45" cy="45" r="37"/>
+          <circle class="r-fg" id="rfg" cx="45" cy="45" r="37" stroke="#534AB7" stroke-dasharray="232.5" stroke-dashoffset="232.5"/>
+        </svg>
+        <div class="ring-inner"><div class="ring-pct" id="rpct">0%</div><div class="ring-lbl">คะแนน</div></div>
+      </div>
+      <div class="score-right">
+        <div class="score-verdict" id="verd"></div>
+        <div class="score-desc" id="vdesc"></div>
+        <div class="stat-row">
+          <div class="stat"><div class="stat-n sn-g" id="pc">0</div><div class="stat-l">ผ่าน</div></div>
+          <div class="stat"><div class="stat-n sn-r" id="fc2">0</div><div class="stat-l">ไม่ผ่าน</div></div>
+          <div class="stat"><div class="stat-n sn-a" id="wc">0</div><div class="stat-l">ตรวจไม่ได้</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="sw('all')">ทั้งหมด</button>
+      <button class="tab" onclick="sw('head')">หัวข้อ (9)</button>
+      <button class="tab" onclick="sw('fmt')">รูปแบบ</button>
+    </div>
+    <div class="panel active" id="p-all"><div class="items" id="la"></div></div>
+    <div class="panel" id="p-head"><div class="items" id="lh"></div></div>
+    <div class="panel" id="p-fmt"><div class="items" id="lf"></div></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let cur=null,ed={text:'',styles:[],isPdf:false};
+
+function show(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));}
+function goBack(){show('pg-upload');}
+
+const dz=document.getElementById('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0])});
+
+function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB';}
+function handleFile(f){
+  if(!f)return;cur=f;
+  document.getElementById('fn').textContent=f.name;
+  document.getElementById('fs').textContent=fmtSize(f.size);
+  const fc=document.getElementById('fc');fc.style.display='flex';
+  document.getElementById('dz').style.display='none';
+  document.getElementById('checkBtn').disabled=false;
+}
+function removeFile(){
+  cur=null;
+  document.getElementById('fc').style.display='none';
+  document.getElementById('dz').style.display='block';
+  document.getElementById('fi').value='';
+  document.getElementById('checkBtn').disabled=true;
+}
+
+async function runCheck(){
+  if(!cur)return;
+  show('pg-loading');
+  try{
+    if(cur.name.toLowerCase().endsWith('.pdf'))await exPdf(cur); else await exDocx(cur);
+    analyze();
+  }catch(e){show('pg-upload');alert('ไม่สามารถอ่านไฟล์: '+e.message);}
+}
+
+async function exPdf(f){
+  const ab=await f.arrayBuffer();const pdf=await pdfjsLib.getDocument({data:ab}).promise;
+  let text='';const styles=[];
+  for(let p=1;p<=pdf.numPages;p++){const pg=await pdf.getPage(p);const c=await pg.getTextContent();for(const i of c.items){if(i.str){text+=i.str+' ';styles.push({text:i.str,fontSize:Math.round(i.transform[0]),fontName:i.fontName||''});}}}
+  ed={text,styles,isPdf:true};
+}
+async function exDocx(f){
+  const ab=await f.arrayBuffer();
+  const r=await mammoth.extractRawText({arrayBuffer:ab});
+  const h=await mammoth.convertToHtml({arrayBuffer:ab});
+  ed={text:r.value,html:h.value,styles:[],isPdf:false};
+}
+
+const HEADS=[
+  {key:'ชื่อโครงการ',alts:['ชื่อโครงงาน','ชื่อเรื่อง']},
+  {key:'ผู้รับผิดชอบโครงการ',alts:['ผู้จัดทำ','ผู้รับผิดชอบ','รายชื่อผู้จัดทำ','ครูผู้สอน']},
+  {key:'หลักการและเหตุผล',alts:['หลักการ','เหตุผล']},
+  {key:'วัตถุประสงค์',alts:['วัตถุประสงค์ของโครงงาน']},
+  {key:'กลุ่มเป้าหมาย',alts:['กลุ่มตัวอย่าง','ประชากร']},
+  {key:'วิธีดำเนินการ',alts:['วิธีดำเนินงาน','ขั้นตอนการดำเนินงาน','วิธีการ']},
+  {key:'ระยะเวลาดำเนินการ',alts:['ระยะเวลา','แผนการดำเนินงาน']},
+  {key:'งบประมาณ',alts:['ประมาณการ','ค่าใช้จ่าย','วัสดุอุปกรณ์']},
+  {key:'ผลที่คาดว่าจะได้รับ',alts:['ประโยชน์ที่คาดว่า','ประโยชน์']},
+];
+function chk(t,h){const lo=t.toLowerCase();return lo.includes(h.key.toLowerCase())||h.alts.some(a=>lo.includes(a.toLowerCase()));}
+
+function analyze(){
+  const t=ed.text,s=ed.styles,ip=ed.isPdf;
+  const hr=HEADS.map(h=>({label:h.key,status:chk(t,h)?'pass':'fail',detail:chk(t,h)?'พบหัวข้อในเอกสาร':'ไม่พบหัวข้อนี้ในเอกสาร'}));
+  const fr=[];
+  if(ip&&s.length>0){
+    const fn=[...new Set(s.map(x=>x.fontName).filter(Boolean))];
+    const hs=fn.some(f=>f.toLowerCase().includes('sarabun'));
+    fr.push({label:'ฟอนต์ TH SarabunPSK',status:hs?'pass':'warn',detail:hs?'พบฟอนต์ SarabunPSK ในเอกสาร':'ไม่พบฟอนต์ SarabunPSK (พบ: '+fn.slice(0,3).join(', ')+')'});
+    const sz=s.map(x=>x.fontSize).filter(x=>x>0&&x<100);
+    fr.push({label:'ขนาดเนื้อหา ~16pt',status:sz.some(x=>x>=14&&x<=18)?'pass':'warn',detail:sz.some(x=>x>=14&&x<=18)?'พบขนาดตัวอักษรช่วงเนื้อหา':'ไม่พบขนาด 16pt (พบ: '+[...new Set(sz)].sort((a,b)=>a-b).slice(0,5).join(', ')+')'});
+    fr.push({label:'ขนาดหัวข้อ ~18pt',status:sz.some(x=>x>=17&&x<=22)?'pass':'warn',detail:sz.some(x=>x>=17&&x<=22)?'พบขนาดตัวอักษรหัวข้อ':'ไม่พบขนาด 18pt ชัดเจน'});
+  } else {
+    fr.push({label:'ฟอนต์ TH SarabunPSK',status:'warn',detail:'ตรวจสอบฟอนต์จาก .docx ไม่ได้โดยตรง — กรุณาตรวจสอบใน Word'});
+    fr.push({label:'ขนาดเนื้อหา 16pt',status:'warn',detail:'ตรวจสอบขนาดฟอนต์จาก .docx ไม่ได้โดยตรง'});
+    fr.push({label:'ขนาดหัวข้อ 18pt',status:'warn',detail:'ตรวจสอบขนาดฟอนต์จาก .docx ไม่ได้โดยตรง'});
+  }
+  const wc=t.split(/\s+/).filter(Boolean).length;
+  fr.push({label:'ความยาวเอกสาร',status:wc>100?'pass':'warn',detail:'พบ '+wc.toLocaleString()+' คำ'+(wc<100?' (อาจสั้นเกินไป)':'')});
+  const hd=/\d{1,2}\s*(มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม|\d{4})/i.test(t);
+  fr.push({label:'ระบุวันที่ในเอกสาร',status:hd?'pass':'warn',detail:hd?'พบข้อมูลวันที่ในเอกสาร':'ไม่พบวันที่ในเอกสาร'});
+
+  const all=[...hr,...fr];
+  const p=all.filter(x=>x.status==='pass').length;
+  const f=all.filter(x=>x.status==='fail').length;
+  const w=all.filter(x=>x.status==='warn').length;
+  const pct=Math.round(p/all.length*100);
+
+  document.getElementById('rfn').textContent=cur.name;
+  document.getElementById('pc').textContent=p;
+  document.getElementById('fc2').textContent=f;
+  document.getElementById('wc').textContent=w;
+  document.getElementById('rpct').textContent=pct+'%';
+
+  const circ=2*Math.PI*37;
+  const fg=document.getElementById('rfg');
+  setTimeout(()=>{fg.style.strokeDashoffset=circ-(circ*pct/100);},100);
+  fg.style.stroke=pct>=80?'#1D9E75':pct>=50?'#EF9F27':'#D85A30';
+  document.getElementById('verd').textContent=pct>=80?'เอกสารผ่านเกณฑ์ดี':pct>=50?'ควรปรับปรุงเพิ่มเติม':'ต้องแก้ไขหลายจุด';
+  document.getElementById('vdesc').textContent=pct>=80?'เอกสารมีความครบถ้วนตามมาตรฐานที่กำหนด':pct>=50?'พบจุดที่ต้องปรับปรุง ดูรายละเอียดด้านล่าง':'พบข้อบกพร่องหลายจุด กรุณาแก้ไขก่อนส่ง';
+
+  function mkItem(c){
+    const ico=c.status==='pass'?'circle-check':c.status==='fail'?'circle-x':'alert-circle';
+    const lbl=c.status==='pass'?'ผ่าน':c.status==='fail'?'ไม่ผ่าน':'ตรวจไม่ได้';
+    return`<div class="item ${c.status}">
+      <div class="item-ico ${c.status}"><i class="ti ti-${ico}"></i></div>
+      <div class="item-body">
+        <div class="item-label">${c.label}<span class="pill ${c.status}">${lbl}</span></div>
+        <div class="item-detail">${c.detail}</div>
+      </div></div>`;
+  }
+  const fails=all.filter(x=>x.status!=='pass');
+  const passes=all.filter(x=>x.status==='pass');
+  document.getElementById('la').innerHTML=[...fails,...passes].map(mkItem).join('');
+  document.getElementById('lh').innerHTML=hr.map(mkItem).join('');
+  document.getElementById('lf').innerHTML=fr.map(mkItem).join('');
+  sw('all');
+  show('pg-result');
+}
+
+function sw(t){
+  const keys=['all','head','fmt'];
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',keys[i]===t));
+  keys.forEach(k=>{
+    const el=document.getElementById('p-'+k);
+    el.classList.toggle('active',k===t);
+    el.style.display=k===t?'block':'none';
+  });
+}
+document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
+document.getElementById('p-all').style.display='block';
+</script>
+</body>
+</html>
