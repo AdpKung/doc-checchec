@@ -5,179 +5,397 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ตรวจสอบเอกสารโครงการ</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+:root{
+  --paper:#FBF3E7;
+  --paper-edge:#F3E6D3;
+  --card:#FFFCF6;
+  --ink:#3D2E22;
+  --ink-soft:#9A8676;
+  --terracotta:#C76B3F;
+  --terracotta-soft:#FBE7DA;
+  --sage:#74916C;
+  --sage-soft:#E6EFE2;
+  --gold:#D89B3D;
+  --gold-soft:#FBEDD4;
+  --line:#EEE0CC;
+  --shadow:0 24px 60px -30px rgba(120,80,40,.35);
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f4ff;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem}
-.card{background:#fff;border-radius:20px;padding:2rem;width:100%;max-width:600px;border:1px solid #e8e6ff}
+
+@keyframes drift{
+  0%,100%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(-2%,2%) scale(1.05)}
+}
+@keyframes drift2{
+  0%,100%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(3%,-2%) scale(1.06)}
+}
+
+body{
+  font-family:'Sarabun',sans-serif;
+  background:var(--paper);
+  min-height:100vh;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:3rem 1.25rem;
+  color:var(--ink);
+  position:relative;
+  overflow-x:hidden;
+}
+body::before,body::after{
+  content:'';position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(10px);
+}
+body::before{
+  width:50vw;height:50vw;top:-15vw;right:-10vw;
+  background:radial-gradient(circle, rgba(199,107,63,.16), transparent 70%);
+  animation:drift 22s ease-in-out infinite;
+}
+body::after{
+  width:46vw;height:46vw;bottom:-14vw;left:-10vw;
+  background:radial-gradient(circle, rgba(116,145,108,.15), transparent 70%);
+  animation:drift2 26s ease-in-out infinite;
+}
+
+/* paper grain overlay */
+.grain{
+  position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.5;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+}
+
+@keyframes riseIn{
+  from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes fadeIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+
+.frame{width:100%;max-width:640px;position:relative;z-index:2}
+
+.masthead{
+  display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1rem;padding:0 .4rem;
+  animation:riseIn .6s cubic-bezier(.16,1,.3,1) both;
+}
+.masthead-title{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+.masthead-mark{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);letter-spacing:.05em}
+
+.card{
+  background:var(--card);
+  border-radius:22px;
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+  animation:riseIn .7s .08s cubic-bezier(.16,1,.3,1) both;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:6px;
+  background:linear-gradient(90deg,var(--terracotta),var(--gold) 50%,var(--sage));
+  opacity:.7;
+  background-size:200% 100%;
+  animation:shimmerBar 6s ease-in-out infinite;
+}
+@keyframes shimmerBar{
+  0%,100%{background-position:0% 0}
+  50%{background-position:100% 0}
+}
+.card-inner{padding:2.5rem 2.25rem 2rem}
 
 .page{display:none}.page.active{display:block}
 
-.hero{text-align:center;padding:1.5rem 0 2rem}
-.hero-icon{width:68px;height:68px;border-radius:18px;background:#EEEDFE;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
-.hero-icon i{font-size:32px;color:#534AB7}
-.hero-title{font-size:22px;font-weight:600;color:#1a1a2e;margin-bottom:8px}
-.hero-sub{font-size:14px;color:#6b6b8a;line-height:1.7}
+/* ---------- Upload page ---------- */
+.hero{padding:.25rem 0 1.75rem;position:relative}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--terracotta);background:var(--terracotta-soft);
+  border:1px solid rgba(199,107,63,.2);
+  padding:6px 14px;border-radius:100px;margin-bottom:1.1rem;
+  animation:riseIn .6s .15s cubic-bezier(.16,1,.3,1) both;
+}
+.hero-tag i{font-size:14px}
+.hero-title{
+  font-family:'Fraunces',serif;font-size:32px;font-weight:600;letter-spacing:-.01em;line-height:1.3;margin-bottom:.7rem;
+  animation:riseIn .65s .22s cubic-bezier(.16,1,.3,1) both;
+}
+.hero-sub{
+  font-size:14px;color:var(--ink-soft);line-height:1.85;max-width:34rem;
+  animation:riseIn .65s .3s cubic-bezier(.16,1,.3,1) both;
+}
 
-.drop-zone{border:2px dashed #c5c0f5;border-radius:16px;padding:2.5rem 1.5rem;text-align:center;cursor:pointer;position:relative;transition:all .15s;margin-bottom:1.25rem;background:#faf9ff}
-.drop-zone:hover,.drop-zone.over{background:#EEEDFE;border-color:#534AB7}
-.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.dz-icon{width:52px;height:52px;border-radius:14px;background:#EEEDFE;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
-.dz-icon i{font-size:24px;color:#534AB7}
-.dz-title{font-size:15px;font-weight:500;color:#1a1a2e;margin-bottom:4px}
-.dz-sub{font-size:13px;color:#9b9bb5}
-.dz-pills{display:flex;gap:6px;justify-content:center;margin-top:12px}
-.dz-pill{font-size:11px;padding:4px 14px;border-radius:20px;background:#EEEDFE;color:#534AB7;font-weight:600;border:1px solid #c5c0f5}
+.drop-zone{
+  border:1.5px dashed var(--line);border-radius:16px;
+  padding:2.75rem 1.5rem;text-align:center;cursor:pointer;position:relative;
+  transition:all .25s cubic-bezier(.16,1,.3,1);margin-bottom:1.25rem;
+  background:linear-gradient(180deg,#FFFEFB,var(--paper));
+  animation:riseIn .65s .38s cubic-bezier(.16,1,.3,1) both;
+  overflow:hidden;
+}
+.drop-zone::after{
+  content:'';position:absolute;inset:0;border-radius:16px;
+  background:radial-gradient(circle at 50% 0%, rgba(199,107,63,.14), transparent 65%);
+  opacity:0;transition:opacity .3s;
+}
+.drop-zone:hover,.drop-zone.over{border-color:var(--terracotta);transform:translateY(-2px);box-shadow:0 14px 30px -18px rgba(199,107,63,.35)}
+.drop-zone:hover::after,.drop-zone.over::after{opacity:1}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:1}
+.dz-icon{
+  width:52px;height:52px;border-radius:14px;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 14px;background:var(--card);
+  position:relative;z-index:0;transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+.drop-zone:hover .dz-icon{transform:translateY(-3px) rotate(-4deg)}
+.dz-icon i{font-size:23px;color:var(--terracotta)}
+.dz-title{font-size:14.5px;font-weight:600;color:var(--ink);margin-bottom:4px;position:relative}
+.dz-sub{font-size:12.5px;color:var(--ink-soft);position:relative}
+.dz-pills{display:flex;gap:8px;justify-content:center;margin-top:14px;position:relative}
+.dz-pill{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:4px 12px;border-radius:100px;
+  background:var(--card);color:var(--ink-soft);font-weight:500;border:1px solid var(--line);letter-spacing:.04em;
+}
 
-.file-card{display:none;align-items:center;gap:12px;background:#f0f0ff;border:1px solid #dddaff;border-radius:12px;padding:12px 14px;margin-bottom:1.25rem}
-.fc-icon{width:40px;height:40px;border-radius:10px;background:#E6F1FB;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.fc-icon i{font-size:20px;color:#185FA5}
-.fc-name{font-size:13px;font-weight:500;color:#1a1a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fc-size{font-size:11px;color:#9b9bb5;margin-top:2px}
-.fc-rm{background:none;border:none;cursor:pointer;color:#b0b0c8;font-size:18px;padding:4px;display:flex;margin-left:auto}
-.fc-rm:hover{color:#534AB7}
+.file-card{
+  display:none;align-items:center;gap:12px;background:var(--card);
+  border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:1.25rem;
+  animation:riseIn .4s cubic-bezier(.16,1,.3,1) both;
+}
+.fc-icon{
+  width:38px;height:38px;border-radius:11px;background:var(--terracotta-soft);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0
+}
+.fc-icon i{font-size:18px;color:var(--terracotta)}
+.fc-name{font-size:13px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc-size{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin-top:3px}
+.fc-rm{background:none;border:none;cursor:pointer;color:var(--ink-soft);font-size:18px;padding:4px;display:flex;margin-left:auto;border-radius:8px;transition:.15s}
+.fc-rm:hover{color:var(--terracotta);background:var(--terracotta-soft);transform:rotate(90deg)}
 
-.btn-primary{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:#534AB7;border:none;border-radius:12px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;color:#fff;transition:background .15s;letter-spacing:.01em}
-.btn-primary:hover:not(:disabled){background:#3C3489}
-.btn-primary:disabled{opacity:.35;cursor:not-allowed}
-.btn-primary i{font-size:18px}
+.btn-primary{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:9px;
+  background:var(--terracotta);border:none;border-radius:14px;padding:15px 20px;
+  font-size:14.5px;font-weight:600;cursor:pointer;color:#fff;
+  transition:background .15s,transform .1s,box-shadow .2s;letter-spacing:.02em;font-family:'Sarabun',sans-serif;
+  box-shadow:0 10px 24px -10px rgba(199,107,63,.55);
+  position:relative;overflow:hidden;
+  animation:riseIn .65s .46s cubic-bezier(.16,1,.3,1) both;
+}
+.btn-primary::after{
+  content:'';position:absolute;inset:0;border-radius:14px;
+  background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);
+  transform:translateX(-100%);transition:transform .6s;
+}
+.btn-primary:hover:not(:disabled)::after{transform:translateX(100%)}
+.btn-primary:hover:not(:disabled){background:#B25A30;box-shadow:0 14px 30px -12px rgba(199,107,63,.6)}
+.btn-primary:active:not(:disabled){transform:scale(.99)}
+.btn-primary:disabled{opacity:.3;cursor:not-allowed;box-shadow:none}
+.btn-primary i{font-size:17px;position:relative}
+.btn-primary span{position:relative}
 
-.loading-page{text-align:center;padding:5rem 1rem}
-.spin-wrap{width:76px;height:76px;border-radius:50%;border:4px solid #EEEDFE;border-top-color:#534AB7;animation:spin .8s linear infinite;margin:0 auto 24px}
+.foot-note{
+  text-align:center;margin-top:1.25rem;font-size:11px;color:var(--ink-soft);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  animation:riseIn .6s .54s cubic-bezier(.16,1,.3,1) both;
+}
+.foot-note i{font-size:13px;color:var(--sage)}
+
+/* ---------- Loading page ---------- */
+.loading-page{text-align:center;padding:4rem 1rem 3rem;animation:fadeIn .4s both}
+.stamp-spin{
+  width:96px;height:96px;border-radius:50%;
+  border:2px dashed var(--line);position:relative;margin:0 auto 28px;
+  display:flex;align-items:center;justify-content:center;background:var(--paper);
+}
+.stamp-spin::before{
+  content:'';position:absolute;inset:-3px;border-radius:50%;
+  border:2px solid transparent;border-top-color:var(--terracotta);border-right-color:var(--gold);
+  animation:spin 1.1s cubic-bezier(.5,.1,.5,.9) infinite;
+}
+.stamp-spin i{font-size:32px;color:var(--terracotta);animation:pulseIcon 1.6s ease-in-out infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-title{font-size:16px;font-weight:600;color:#1a1a2e;margin-bottom:6px}
-.loading-sub{font-size:13px;color:#9b9bb5}
+@keyframes pulseIcon{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.88);opacity:.65}}
+.loading-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--ink);margin-bottom:8px}
+.loading-sub{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);letter-spacing:.04em}
+.loading-dots{display:inline-flex;gap:5px;margin-top:14px}
+.loading-dots span{
+  width:6px;height:6px;border-radius:50%;background:var(--terracotta);
+  animation:dotPulse 1.2s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2){background:var(--gold);animation-delay:.15s}
+.loading-dots span:nth-child(3){background:var(--sage);animation-delay:.3s}
+@keyframes dotPulse{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
 
-.result-header{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid #f0f0f7}
-.btn-back{display:flex;align-items:center;gap:6px;background:none;border:1px solid #e0deff;border-radius:10px;padding:8px 14px;font-size:13px;color:#534AB7;cursor:pointer;font-weight:500;transition:background .12s}
-.btn-back:hover{background:#EEEDFE}
+/* ---------- Result page ---------- */
+.result-header{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px dashed var(--line)}
+.btn-back{
+  display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:8px 14px;font-size:12.5px;color:var(--ink);cursor:pointer;
+  font-weight:500;transition:background .12s,border-color .12s;font-family:'Sarabun',sans-serif;
+}
+.btn-back:hover{background:var(--terracotta-soft);border-color:var(--terracotta)}
 .btn-back i{font-size:15px}
-.rh-title{font-size:16px;font-weight:600;color:#1a1a2e}
-.rh-fn{font-size:12px;color:#9b9bb5;margin-top:1px}
+.rh-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--ink)}
+.rh-fn{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);margin-top:2px}
 
-.score-band{background:#faf9ff;border:1px solid #e8e6ff;border-radius:16px;padding:1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1.25rem}
-.ring-wrap{position:relative;flex-shrink:0}
-.ring-svg{transform:rotate(-90deg)}
-.r-bg{fill:none;stroke:#f0f0ff;stroke-width:7}
-.r-fg{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .7s cubic-bezier(.4,0,.2,1)}
-.ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.ring-pct{font-size:20px;font-weight:700;color:#1a1a2e}
-.ring-lbl{font-size:10px;color:#9b9bb5;margin-top:1px}
-.score-right{flex:1}
-.score-verdict{font-size:15px;font-weight:600;color:#1a1a2e;margin-bottom:4px}
-.score-desc{font-size:12px;color:#6b6b8a;line-height:1.6;margin-bottom:12px}
-.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.stat{background:#fff;border:1px solid #f0f0f7;border-radius:10px;padding:8px;text-align:center}
-.stat-n{font-size:20px;font-weight:700}
-.stat-l{font-size:10px;color:#9b9bb5;margin-top:2px}
-.sn-g{color:#0F6E56}.sn-r{color:#993C1D}.sn-a{color:#854F0B}
+.score-band{
+  border:1px solid var(--line);border-radius:18px;padding:1.5rem 1.4rem;
+  margin-bottom:1.5rem;display:flex;align-items:center;gap:1.5rem;
+  position:relative;background:linear-gradient(155deg,#FFFEFB,var(--paper));
+}
+.stamp-wrap{position:relative;flex-shrink:0;width:94px;height:94px}
+.stamp-badge{
+  width:94px;height:94px;border-radius:50%;border:2.5px solid currentColor;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transform:rotate(-7deg);position:relative;background:var(--card);
+}
+.stamp-badge::after{
+  content:'';position:absolute;inset:6px;border:1px dashed currentColor;border-radius:50%;opacity:.4;
+}
+.stamp-pct{font-family:'Fraunces',serif;font-size:24px;font-weight:600;line-height:1}
+.stamp-lbl{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.18em;margin-top:3px;text-transform:uppercase}
+.score-right{flex:1;min-width:0}
+.score-verdict{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--ink);margin-bottom:5px}
+.score-desc{font-size:12.5px;color:var(--ink-soft);line-height:1.75;margin-bottom:14px}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center;background:var(--card)}
+.stat-n{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600}
+.stat-l{font-size:10.5px;color:var(--ink-soft);margin-top:3px}
+.sn-g{color:var(--sage)}.sn-r{color:var(--terracotta)}.sn-a{color:var(--gold)}
 
-.tabs{display:flex;gap:4px;margin-bottom:1rem;background:#f5f4ff;border-radius:12px;padding:4px}
-.tab{flex:1;padding:8px;font-size:12.5px;cursor:pointer;color:#6b6b8a;border-radius:9px;background:none;border:none;transition:all .12s;font-weight:500;text-align:center}
-.tab.active{background:#fff;color:#534AB7;font-weight:600;box-shadow:0 1px 3px rgba(83,74,183,.12)}
+.tabs{display:flex;gap:6px;margin-bottom:1.1rem;border-bottom:1px solid var(--line)}
+.tab{
+  padding:9px 4px;font-size:13px;cursor:pointer;color:var(--ink-soft);
+  background:none;border:none;transition:color .12s;font-weight:500;text-align:center;
+  position:relative;font-family:'Sarabun',sans-serif;
+}
+.tab::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--terracotta);border-radius:2px;transform:scaleX(0);transition:transform .15s}
+.tab.active{color:var(--ink);font-weight:600}
+.tab.active::after{transform:scaleX(1)}
 
-.items{display:flex;flex-direction:column;gap:6px}
-.item{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid #f0f0f7;border-radius:12px;padding:12px 13px;position:relative;overflow:hidden}
-.item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
-.item.pass::before{background:#1D9E75}
-.item.fail::before{background:#D85A30}
-.item.warn::before{background:#EF9F27}
-.item-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.item-ico.pass{background:#E1F5EE}.item-ico.fail{background:#FAECE7}.item-ico.warn{background:#FAEEDA}
-.item-ico i{font-size:16px}
-.item-ico.pass i{color:#0F6E56}.item-ico.fail i{color:#993C1D}.item-ico.warn i{color:#854F0B}
-.item-body{flex:1;padding-left:2px}
-.item-label{font-size:13px;font-weight:600;color:#1a1a2e;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
-.item-detail{font-size:12px;color:#6b6b8a;margin-top:3px;line-height:1.5}
-.pill{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
-.pill.pass{background:#E1F5EE;color:#085041}
-.pill.fail{background:#FAECE7;color:#712B13}
-.pill.warn{background:#FAEEDA;color:#633806}
+.items{display:flex;flex-direction:column;gap:8px}
+.item{
+  display:flex;align-items:flex-start;gap:11px;background:var(--card);
+  border:1px solid var(--line);border-radius:14px;padding:14px 15px;position:relative;overflow:hidden;
+}
+.item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+.item.pass::before{background:var(--sage)}
+.item.fail::before{background:var(--terracotta)}
+.item.warn::before{background:var(--gold)}
+.item-ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.item-ico.pass{background:var(--sage-soft)}.item-ico.fail{background:var(--terracotta-soft)}.item-ico.warn{background:var(--gold-soft)}
+.item-ico i{font-size:17px}
+.item-ico.pass i{color:var(--sage)}.item-ico.fail i{color:var(--terracotta)}.item-ico.warn i{color:var(--gold)}
+.item-body{flex:1;padding-left:2px;min-width:0}
+.item-label{font-size:13.5px;font-weight:600;color:var(--ink);display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+.item-detail{font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.65}
+.item-fix{
+  margin-top:9px;display:flex;align-items:flex-start;gap:8px;
+  background:var(--paper);border:1px dashed var(--line);border-radius:10px;
+  padding:9px 11px;font-size:11.5px;color:var(--ink);line-height:1.65;
+}
+.item-fix i{font-size:14px;color:var(--terracotta);flex-shrink:0;margin-top:1px}
+.item-fix b{font-weight:700}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:9.5px;padding:3px 10px;border-radius:100px;font-weight:600;letter-spacing:.04em}
+.pill.pass{background:var(--sage-soft);color:var(--sage)}
+.pill.fail{background:var(--terracotta-soft);color:var(--terracotta)}
+.pill.warn{background:var(--gold-soft);color:var(--gold)}
 .panel{display:none}.panel.active{display:block}
-
-footer{text-align:center;margin-top:1.5rem;font-size:11px;color:#c0bfd8}
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="page active" id="pg-upload">
-    <div class="hero">
-      <div class="hero-icon"><i class="ti ti-clipboard-check"></i></div>
-      <div class="hero-title">ตรวจสอบเอกสารโครงการ</div>
-      <div class="hero-sub">ตรวจความครบถ้วนของหัวข้อ ฟอนต์ และขนาดตัวอักษร<br>รองรับไฟล์ .docx และ .pdf</div>
-    </div>
-
-    <div class="drop-zone" id="dz">
-      <input type="file" id="fi" accept=".pdf,.docx,.doc" onchange="handleFile(this.files[0])">
-      <div class="dz-icon"><i class="ti ti-cloud-upload"></i></div>
-      <div class="dz-title">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก</div>
-      <div class="dz-sub">ไฟล์ Word หรือ PDF ของเอกสารโครงการ</div>
-      <div class="dz-pills"><span class="dz-pill">.docx</span><span class="dz-pill">.pdf</span></div>
-    </div>
-
-    <div class="file-card" id="fc">
-      <div class="fc-icon"><i class="ti ti-file-text"></i></div>
-      <div style="flex:1;overflow:hidden">
-        <div class="fc-name" id="fn"></div>
-        <div class="fc-size" id="fs"></div>
-      </div>
-      <button class="fc-rm" onclick="removeFile()"><i class="ti ti-x"></i></button>
-    </div>
-
-    <button class="btn-primary" id="checkBtn" onclick="runCheck()" disabled>
-      <i class="ti ti-scan"></i> เริ่มตรวจสอบเอกสาร
-    </button>
-    <footer>ไม่มีการอัปโหลดไฟล์ไปยังเซิร์ฟเวอร์ — ทุกอย่างประมวลผลในเบราว์เซอร์ของคุณ</footer>
+<div class="frame">
+  <div class="masthead">
+    <div class="masthead-title">เครื่องมือตรวจเอกสาร</div>
+    <div class="masthead-mark">FORM REVIEW · LOCAL ONLY</div>
   </div>
 
-  <div class="page" id="pg-loading">
-    <div class="loading-page">
-      <div class="spin-wrap"></div>
-      <div class="loading-title">กำลังวิเคราะห์เอกสาร</div>
-      <div class="loading-sub">โปรดรอสักครู่...</div>
-    </div>
-  </div>
+  <div class="card">
+    <div class="card-inner">
 
-  <div class="page" id="pg-result">
-    <div class="result-header">
-      <button class="btn-back" onclick="goBack()"><i class="ti ti-arrow-left"></i> ย้อนกลับ</button>
-      <div>
-        <div class="rh-title">ผลการตรวจสอบ</div>
-        <div class="rh-fn" id="rfn"></div>
-      </div>
-    </div>
+      <div class="page active" id="pg-upload">
+        <div class="hero">
+          <div class="hero-tag"><i class="ti ti-clipboard-check"></i> ตรวจสอบโครงสร้างเอกสาร</div>
+          <div class="hero-title">ตรวจเอกสารโครงการ</div>
+          <div class="hero-sub">อัปโหลดไฟล์เอกสารโครงการของคุณ ระบบจะตรวจความครบถ้วนของหัวข้อ รูปแบบตัวอักษร และรายละเอียดอื่น ๆ ให้ทันที</div>
+        </div>
 
-    <div class="score-band">
-      <div class="ring-wrap">
-        <svg class="ring-svg" width="90" height="90" viewBox="0 0 90 90">
-          <circle class="r-bg" cx="45" cy="45" r="37"/>
-          <circle class="r-fg" id="rfg" cx="45" cy="45" r="37" stroke="#534AB7" stroke-dasharray="232.5" stroke-dashoffset="232.5"/>
-        </svg>
-        <div class="ring-inner"><div class="ring-pct" id="rpct">0%</div><div class="ring-lbl">คะแนน</div></div>
+        <div class="drop-zone" id="dz">
+          <input type="file" id="fi" accept=".pdf,.docx,.doc" onchange="handleFile(this.files[0])">
+          <div class="dz-icon"><i class="ti ti-cloud-upload"></i></div>
+          <div class="dz-title">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก</div>
+          <div class="dz-sub">ไฟล์ Word หรือ PDF ของเอกสารโครงการ</div>
+          <div class="dz-pills"><span class="dz-pill">.DOCX</span><span class="dz-pill">.PDF</span></div>
+        </div>
+
+        <div class="file-card" id="fc">
+          <div class="fc-icon"><i class="ti ti-file-text"></i></div>
+          <div style="flex:1;overflow:hidden">
+            <div class="fc-name" id="fn"></div>
+            <div class="fc-size" id="fs"></div>
+          </div>
+          <button class="fc-rm" onclick="removeFile()"><i class="ti ti-x"></i></button>
+        </div>
+
+        <button class="btn-primary" id="checkBtn" onclick="runCheck()" disabled>
+          <i class="ti ti-scan"></i> <span>เริ่มตรวจสอบเอกสาร</span>
+        </button>
+        <div class="foot-note"><i class="ti ti-shield-lock"></i> ไม่มีการอัปโหลดไฟล์ไปยังเซิร์ฟเวอร์ — ประมวลผลในเบราว์เซอร์ของคุณทั้งหมด</div>
       </div>
-      <div class="score-right">
-        <div class="score-verdict" id="verd"></div>
-        <div class="score-desc" id="vdesc"></div>
-        <div class="stat-row">
-          <div class="stat"><div class="stat-n sn-g" id="pc">0</div><div class="stat-l">ผ่าน</div></div>
-          <div class="stat"><div class="stat-n sn-r" id="fc2">0</div><div class="stat-l">ไม่ผ่าน</div></div>
-          <div class="stat"><div class="stat-n sn-a" id="wc">0</div><div class="stat-l">ตรวจไม่ได้</div></div>
+
+      <div class="page" id="pg-loading">
+        <div class="loading-page">
+          <div class="stamp-spin"><i class="ti ti-file-search"></i></div>
+          <div class="loading-title">กำลังวิเคราะห์เอกสาร</div>
+          <div class="loading-sub">CHECKING HEADINGS, FONT, SIZE…</div>
         </div>
       </div>
-    </div>
 
-    <div class="tabs">
-      <button class="tab active" onclick="sw('all')">ทั้งหมด</button>
-      <button class="tab" onclick="sw('head')">หัวข้อ (9)</button>
-      <button class="tab" onclick="sw('fmt')">รูปแบบ</button>
+      <div class="page" id="pg-result">
+        <div class="result-header">
+          <button class="btn-back" onclick="goBack()"><i class="ti ti-arrow-left"></i> ย้อนกลับ</button>
+          <div>
+            <div class="rh-title">ผลการตรวจสอบ</div>
+            <div class="rh-fn" id="rfn"></div>
+          </div>
+        </div>
+
+        <div class="score-band">
+          <div class="stamp-wrap">
+            <div class="stamp-badge" id="stampBadge">
+              <div class="stamp-pct" id="rpct">0%</div>
+              <div class="stamp-lbl">SCORE</div>
+            </div>
+          </div>
+          <div class="score-right">
+            <div class="score-verdict" id="verd"></div>
+            <div class="score-desc" id="vdesc"></div>
+            <div class="stat-row">
+              <div class="stat"><div class="stat-n sn-g" id="pc">0</div><div class="stat-l">ผ่าน</div></div>
+              <div class="stat"><div class="stat-n sn-r" id="fc2">0</div><div class="stat-l">ไม่ผ่าน</div></div>
+              <div class="stat"><div class="stat-n sn-a" id="wc">0</div><div class="stat-l">ตรวจไม่ได้</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" onclick="sw('all')">ทั้งหมด</button>
+          <button class="tab" onclick="sw('head')">หัวข้อ (9)</button>
+          <button class="tab" onclick="sw('fmt')">รูปแบบ</button>
+        </div>
+        <div class="panel active" id="p-all"><div class="items" id="la"></div></div>
+        <div class="panel" id="p-head"><div class="items" id="lh"></div></div>
+        <div class="panel" id="p-fmt"><div class="items" id="lf"></div></div>
+      </div>
+
     </div>
-    <div class="panel active" id="p-all"><div class="items" id="la"></div></div>
-    <div class="panel" id="p-head"><div class="items" id="lh"></div></div>
-    <div class="panel" id="p-fmt"><div class="items" id="lf"></div></div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 let cur=null,ed={text:'',styles:[],isPdf:false};
@@ -226,7 +444,57 @@ async function exDocx(f){
   const ab=await f.arrayBuffer();
   const r=await mammoth.extractRawText({arrayBuffer:ab});
   const h=await mammoth.convertToHtml({arrayBuffer:ab});
-  ed={text:r.value,html:h.value,styles:[],isPdf:false};
+
+  // --- extract real font/size info from word/document.xml ---
+  const styles=[];
+  try{
+    const zip=await JSZip.loadAsync(ab);
+    const xmlFile=zip.file('word/document.xml');
+    if(xmlFile){
+      const xml=await xmlFile.async('text');
+      // also grab default doc style (Normal) from styles.xml as fallback
+      let defaultFont='',defaultSize=0;
+      const stylesFile=zip.file('word/styles.xml');
+      if(stylesFile){
+        const sxml=await stylesFile.async('text');
+        const docDef=sxml.match(/<w:docDefaults>[\s\S]*?<\/w:docDefaults>/);
+        if(docDef){
+          const fm=docDef[0].match(/<w:rFonts[^>]*w:ascii="([^"]*)"/);
+          const sm=docDef[0].match(/<w:sz w:val="(\d+)"/);
+          if(fm)defaultFont=fm[1];
+          if(sm)defaultSize=parseInt(sm[1])/2;
+        }
+      }
+      // walk every <w:r>...</w:r> run, pull rFonts/sz from its rPr, and text from w:t
+      const runRe=/<w:r(?:\s[^>]*)?>([\s\S]*?)<\/w:r>/g;
+      let m;
+      while((m=runRe.exec(xml))){
+        const run=m[1];
+        const tMatches=[...run.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)];
+        if(tMatches.length===0)continue;
+        const text=tMatches.map(x=>x[1]).join('');
+        if(!text.trim())continue;
+        const rprMatch=run.match(/<w:rPr>([\s\S]*?)<\/w:rPr>/);
+        let fontName=defaultFont,fontSize=defaultSize;
+        if(rprMatch){
+          const rpr=rprMatch[1];
+          const fm=rpr.match(/<w:rFonts[^>]*(?:w:cs="([^"]*)"|w:ascii="([^"]*)")/);
+          const fmAll=rpr.match(/<w:rFonts([^>]*)\/>/);
+          if(fmAll){
+            const asciiM=fmAll[1].match(/w:ascii="([^"]*)"/);
+            const csM=fmAll[1].match(/w:cs="([^"]*)"/);
+            const eaM=fmAll[1].match(/w:eastAsia="([^"]*)"/);
+            fontName=csM?csM[1]:(asciiM?asciiM[1]:(eaM?eaM[1]:fontName));
+          }
+          const sm=rpr.match(/<w:sz w:val="(\d+)"/);
+          if(sm)fontSize=parseInt(sm[1])/2;
+        }
+        styles.push({text,fontSize,fontName});
+      }
+    }
+  }catch(e){ /* if parsing fails, styles stays empty -> fallback handled in analyze() */ }
+
+  ed={text:r.value,html:h.value,styles,isPdf:false};
 }
 
 const HEADS=[
@@ -244,24 +512,64 @@ function chk(t,h){const lo=t.toLowerCase();return lo.includes(h.key.toLowerCase(
 
 function analyze(){
   const t=ed.text,s=ed.styles,ip=ed.isPdf;
-  const hr=HEADS.map(h=>({label:h.key,status:chk(t,h)?'pass':'fail',detail:chk(t,h)?'พบหัวข้อในเอกสาร':'ไม่พบหัวข้อนี้ในเอกสาร'}));
+  const hr=HEADS.map(h=>({
+    label:h.key,
+    status:chk(t,h)?'pass':'fail',
+    detail:chk(t,h)?'พบหัวข้อในเอกสาร':'ไม่พบหัวข้อนี้ในเอกสาร',
+    fix:chk(t,h)?'':`เพิ่มหัวข้อ "${h.key}" ลงในเอกสาร โดยพิมพ์เป็นหัวข้อแยกบรรทัด (ตัวหนา) ก่อนเริ่มเนื้อหาในส่วนนี้ ตรวจสอบว่าสะกดตรงตามแบบฟอร์มที่กำหนด`
+  }));
   const fr=[];
-  if(ip&&s.length>0){
+
+  if(s.length>0){
     const fn=[...new Set(s.map(x=>x.fontName).filter(Boolean))];
-    const hs=fn.some(f=>f.toLowerCase().includes('sarabun'));
-    fr.push({label:'ฟอนต์ TH SarabunPSK',status:hs?'pass':'warn',detail:hs?'พบฟอนต์ SarabunPSK ในเอกสาร':'ไม่พบฟอนต์ SarabunPSK (พบ: '+fn.slice(0,3).join(', ')+')'});
-    const sz=s.map(x=>x.fontSize).filter(x=>x>0&&x<100);
-    fr.push({label:'ขนาดเนื้อหา ~16pt',status:sz.some(x=>x>=14&&x<=18)?'pass':'warn',detail:sz.some(x=>x>=14&&x<=18)?'พบขนาดตัวอักษรช่วงเนื้อหา':'ไม่พบขนาด 16pt (พบ: '+[...new Set(sz)].sort((a,b)=>a-b).slice(0,5).join(', ')+')'});
-    fr.push({label:'ขนาดหัวข้อ ~18pt',status:sz.some(x=>x>=17&&x<=22)?'pass':'warn',detail:sz.some(x=>x>=17&&x<=22)?'พบขนาดตัวอักษรหัวข้อ':'ไม่พบขนาด 18pt ชัดเจน'});
+    const norm=fn.map(x=>x.toLowerCase());
+    const hs=norm.some(f=>f.includes('sarabun'));
+    fr.push({
+      label:'ฟอนต์ TH SarabunPSK',
+      status:hs?'pass':'fail',
+      detail:hs?'พบฟอนต์ TH SarabunPSK ที่ใช้ในเอกสาร':'ไม่พบฟอนต์ TH SarabunPSK ในเอกสาร (พบฟอนต์: '+(fn.slice(0,3).join(', ')||'ไม่ทราบ')+')',
+      fix:hs?'':(ip
+        ? 'เปิดไฟล์ต้นฉบับ (Word) เลือกข้อความทั้งหมด (Ctrl+A) เปลี่ยนฟอนต์เป็น "TH SarabunPSK" จากนั้นบันทึกเป็น PDF ใหม่อีกครั้ง'
+        : 'เลือกข้อความทั้งหมดในเอกสาร (Ctrl+A) แล้วเปลี่ยนฟอนต์เป็น "TH SarabunPSK" จากเมนู Font ใน Word หากไม่มีฟอนต์นี้ในเครื่อง ให้ดาวน์โหลดและติดตั้งจากชุดฟอนต์มาตรฐานราชการ (TH Sarabun New / TH SarabunPSK) ก่อน')
+    });
+
+    const szRound=s.map(x=>Math.round(x.fontSize*2)/2).filter(x=>x>0&&x<100);
+    const bodyOk=szRound.some(x=>x>=15.5&&x<=16.5);
+    fr.push({
+      label:'ขนาดเนื้อหา 16pt',
+      status:bodyOk?'pass':'fail',
+      detail:bodyOk?'พบขนาดตัวอักษร 16pt ในส่วนเนื้อหา':'ไม่พบขนาดตัวอักษร 16pt ในเนื้อหา (พบขนาด: '+[...new Set(szRound)].sort((a,b)=>a-b).slice(0,6).join(', ')+'pt)',
+      fix:bodyOk?'':'เลือกข้อความเนื้อหาในเอกสาร แล้วตั้งขนาดตัวอักษรเป็น 16pt จากเมนู Font Size (สังเกตว่าขนาดปัจจุบันคือ '+([...new Set(szRound)].sort((a,b)=>a-b).slice(0,3).join(', ')||'ไม่ทราบ')+'pt)'
+    });
+
+    const headOk=szRound.some(x=>x>=17.5&&x<=18.5);
+    fr.push({
+      label:'ขนาดหัวข้อ 18pt',
+      status:headOk?'pass':'fail',
+      detail:headOk?'พบขนาดตัวอักษร 18pt ในส่วนหัวข้อ':'ไม่พบขนาดตัวอักษร 18pt สำหรับหัวข้อ',
+      fix:headOk?'':'เลือกข้อความหัวข้อแต่ละส่วน (เช่น "หลักการและเหตุผล") แล้วตั้งขนาดตัวอักษรเป็น 18pt และทำตัวหนา เพื่อให้แยกจากเนื้อหาอย่างชัดเจน'
+    });
   } else {
-    fr.push({label:'ฟอนต์ TH SarabunPSK',status:'warn',detail:'ตรวจสอบฟอนต์จาก .docx ไม่ได้โดยตรง — กรุณาตรวจสอบใน Word'});
-    fr.push({label:'ขนาดเนื้อหา 16pt',status:'warn',detail:'ตรวจสอบขนาดฟอนต์จาก .docx ไม่ได้โดยตรง'});
-    fr.push({label:'ขนาดหัวข้อ 18pt',status:'warn',detail:'ตรวจสอบขนาดฟอนต์จาก .docx ไม่ได้โดยตรง'});
+    fr.push({label:'ฟอนต์ TH SarabunPSK',status:'warn',detail:'ไม่สามารถตรวจสอบฟอนต์ของไฟล์นี้ได้',fix:'เปิดไฟล์ใน Word เลือกข้อความทั้งหมด (Ctrl+A) แล้วดูชื่อฟอนต์ในกล่อง Font ว่าเป็น "TH SarabunPSK" หรือไม่ หากไม่ใช่ให้เปลี่ยนเป็นฟอนต์นี้'});
+    fr.push({label:'ขนาดเนื้อหา 16pt',status:'warn',detail:'ไม่สามารถตรวจสอบขนาดตัวอักษรของไฟล์นี้ได้',fix:'เปิดไฟล์ใน Word เลือกข้อความเนื้อหา แล้วตรวจสอบ/ตั้งขนาดตัวอักษรเป็น 16pt'});
+    fr.push({label:'ขนาดหัวข้อ 18pt',status:'warn',detail:'ไม่สามารถตรวจสอบขนาดตัวอักษรของไฟล์นี้ได้',fix:'เปิดไฟล์ใน Word เลือกข้อความหัวข้อ แล้วตรวจสอบ/ตั้งขนาดตัวอักษรเป็น 18pt ตัวหนา'});
   }
+
   const wc=t.split(/\s+/).filter(Boolean).length;
-  fr.push({label:'ความยาวเอกสาร',status:wc>100?'pass':'warn',detail:'พบ '+wc.toLocaleString()+' คำ'+(wc<100?' (อาจสั้นเกินไป)':'')});
+  fr.push({
+    label:'ความยาวเอกสาร',
+    status:wc>100?'pass':'warn',
+    detail:'พบ '+wc.toLocaleString()+' คำ'+(wc<100?' (อาจสั้นเกินไป)':''),
+    fix:wc>100?'':'ขยายเนื้อหาในแต่ละหัวข้อให้ละเอียดขึ้น เช่น อธิบายหลักการและเหตุผล วิธีดำเนินการ และผลที่คาดว่าจะได้รับให้ครบถ้วนมากขึ้น'
+  });
+
   const hd=/\d{1,2}\s*(มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม|\d{4})/i.test(t);
-  fr.push({label:'ระบุวันที่ในเอกสาร',status:hd?'pass':'warn',detail:hd?'พบข้อมูลวันที่ในเอกสาร':'ไม่พบวันที่ในเอกสาร'});
+  fr.push({
+    label:'ระบุวันที่ในเอกสาร',
+    status:hd?'pass':'warn',
+    detail:hd?'พบข้อมูลวันที่ในเอกสาร':'ไม่พบวันที่ในเอกสาร',
+    fix:hd?'':'เพิ่มวันที่จัดทำหรือวันที่ดำเนินโครงการ เช่น "วันที่ 14 มิถุนายน 2569" ไว้ในส่วนต้นหรือส่วนระยะเวลาดำเนินการของเอกสาร'
+  });
 
   const all=[...hr,...fr];
   const p=all.filter(x=>x.status==='pass').length;
@@ -275,21 +583,21 @@ function analyze(){
   document.getElementById('wc').textContent=w;
   document.getElementById('rpct').textContent=pct+'%';
 
-  const circ=2*Math.PI*37;
-  const fg=document.getElementById('rfg');
-  setTimeout(()=>{fg.style.strokeDashoffset=circ-(circ*pct/100);},100);
-  fg.style.stroke=pct>=80?'#1D9E75':pct>=50?'#EF9F27':'#D85A30';
+  const tone=pct>=80?'var(--sage)':pct>=50?'var(--gold)':'var(--terracotta)';
+  document.getElementById('stampBadge').style.color=tone;
   document.getElementById('verd').textContent=pct>=80?'เอกสารผ่านเกณฑ์ดี':pct>=50?'ควรปรับปรุงเพิ่มเติม':'ต้องแก้ไขหลายจุด';
   document.getElementById('vdesc').textContent=pct>=80?'เอกสารมีความครบถ้วนตามมาตรฐานที่กำหนด':pct>=50?'พบจุดที่ต้องปรับปรุง ดูรายละเอียดด้านล่าง':'พบข้อบกพร่องหลายจุด กรุณาแก้ไขก่อนส่ง';
 
   function mkItem(c){
     const ico=c.status==='pass'?'circle-check':c.status==='fail'?'circle-x':'alert-circle';
     const lbl=c.status==='pass'?'ผ่าน':c.status==='fail'?'ไม่ผ่าน':'ตรวจไม่ได้';
+    const fixHtml=(c.fix&&c.fix.trim())?`<div class="item-fix"><i class="ti ti-wand"></i><span><b>วิธีแก้:</b> ${c.fix}</span></div>`:'';
     return`<div class="item ${c.status}">
       <div class="item-ico ${c.status}"><i class="ti ti-${ico}"></i></div>
       <div class="item-body">
         <div class="item-label">${c.label}<span class="pill ${c.status}">${lbl}</span></div>
         <div class="item-detail">${c.detail}</div>
+        ${fixHtml}
       </div></div>`;
   }
   const fails=all.filter(x=>x.status!=='pass');
